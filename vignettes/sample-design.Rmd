@@ -7,6 +7,9 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Introduction
+This vignette is designed to provide a brief overview of one method to design a creel survey using stratified random sampling. Examples are provided to stratify by time of day, day of week, and multiple access points.  
+
 # Required Packages for this Vignette
 Functions used in this chapter require loading the packages shown below.  
 ```{r, warning=FALSE, message=FALSE}
@@ -19,8 +22,10 @@ library(ggplot2)    ## for visualizations
 ```  
 
 
-# Build Sampling Calendar
-1. Create a vector of dates which should be sampled  
+# Build Sampling Calendar  
+Before we can conduct random sampling, we need to build the sampling calendar which we will randomly draw samples from. This design builds a calendar that classifies holidays as weekends to accurately stratify by day of week. Day length (i.e., sunrise, sunset, and the time between) is also calculated for each day in the sampling calendar.   
+
+### 1. Create a vector of possible sampling dates  
 ```{r}
 ## Define start and end dates
 start_date <- "2023/03/01"
@@ -33,22 +38,26 @@ source("scripts/calendar.R")
 
 ## Build calendar from start and end dates to assign DOW and holidays
 cal <- create_calendar(start_date, end_date) %>% 
-  ## Assign week
+  ## Add week number
   mutate(week = isoweek(date))
 ```  
 
-2. Find the sunrise and sunset times for a give location for each date in the vector defined above. 
+### 2. Find the sunrise and sunset times for a give location for each date in the vector defined above. 
 ```{r}
-
+## Define daily sunrise and sunset times
 dat <- getSunlightTimes(date_vec, lat = 41.186126, lon = -111.381330, 
                         keep = c("sunrise", "sunset"), tz = "America/Denver") %>% 
+  ## Add month variable
   mutate(month = month(date))
-## Display first six rows
+
+## Display first six rows for example
 head(dat)
 ```  
 
 
-# Examine Daylength During Sampling Period  
+# Examine Day Length During Sampling Period  
+A common stratum is time of day (e.g., AM and PM). The rationale for this stratum is explained in the monitoring plan but the figures below provide a visual representation of why this stratum improves feasibility of a creel design.  
+
 ```{r}
 ## Summarize the calendar 
 dat_sum <- dat %>% group_by(month) %>% 
@@ -66,7 +75,10 @@ dat_sum <- dat %>% group_by(month) %>%
                                          sunset_minute), format = "%Y-%m-%d %H:%M")) %>% 
   ## calculate length of day in each month
   mutate(lod = round(sunset_time-sunrise_time, 1))
+```
 
+## No Time of Day Stratum  
+```{r}
 ## plot
 ggplot(dat_sum, aes(x = month, y = lod)) +
   geom_bar(stat = "identity", fill = "gray70", color = "black") +
@@ -83,7 +95,7 @@ ggplot(dat_sum, aes(x = month, y = lod)) +
 ```  
 
 
-## Add Time of Day Strata  
+## Add Time of Day Stratum  
 ```{r}
 dat_sum_strat <- dat_sum %>% 
   mutate(losp = lod/2) %>% 
@@ -157,7 +169,7 @@ cal_rand_one <- bind_rows(cal_wd_one, cal_we_one) %>%
 knitr::kable(cal_rand_one, format = "simple")
 ```
 
-## Example 3: Stratified by Time of Day (TOD), Day of Week (DOW), and Access Site
+## Example 3: Stratified by Time of Day (TOD), Day of Week (DOW), and Access Sites
 ```{r}
 ## set seed to reproduce randomized results
 set.seed(32104934)
