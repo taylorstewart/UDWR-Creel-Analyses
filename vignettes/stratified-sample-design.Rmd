@@ -40,6 +40,9 @@ source("scripts/calendar.R")
 cal <- create_calendar(start_date, end_date) %>% 
   ## Add week number
   mutate(week = isoweek(date))
+
+## Display first six rows for example
+head(cal)
 ```  
 
 ### 2. Find the sunrise and sunset times for a give location for each date in the vector defined above. 
