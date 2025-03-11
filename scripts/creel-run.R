@@ -21,10 +21,12 @@ dat_sppcomp <- read_excel("data/test-moonlake-sppcomp.xlsx", sheet = 1)
 
 
 # DEFINE DATA OF INTEREST (i.e., data to evaluate) ----------------------------------------------------------------
-start_date <- c("2018-07-03") # Format must be "yyyy-mm-dd"
-end_date <- c("2019-06-29") # Format must be "yyyy-mm-dd"
+start_date <- c("2016-04-01")    # Format must be "yyyy-mm-dd"
+end_date <- c("2016-09-30")      # Format must be "yyyy-mm-dd"
 ##--- accurate dates are important to not over inflate the potential number of sampling dates
-waterbody_interest <- c("Moon Lake") ## if multiple systems combine with c() e.g., c("East Canyon Res", "Lost Creek Res)
+
+waterbody_interest <- c("East Canyon Res") 
+##--- if multiple systems combine with c() e.g., c("East Canyon Res", "Lost Creek Res)
 
 ## Run data filtering by dates and waterbody name
 source("scripts/data-filter.R")
@@ -44,7 +46,7 @@ source("scripts/summary-stats.R")
 
 
 # QA/QC -----------------------------------------------------------------------------------------------------------
-## Check for consistenecy between data files and if dates and DOW were assigned correctly
+## Check for consistency between data files and if dates and DOW were assigned correctly
 qaqc <- check(data1 = dat_contact, data2 = dat_count)
 ## Open data frame to view QA/QC results
 View(qaqc)  ## NA in the "flag" columns indicates no error
@@ -97,7 +99,7 @@ if(opt == 1 | opt == 2) {
 ## Statistics for contact data set
 ## Grouping variables should match the variables listed in choice one of the stratification option, plus 'day' variable.
 roving1a(data = dat_contact, grp_var = grp_var_vec, effort = "effort", catch = "catch")
-##--- IGNORE WARNING ABOUT USING EXTERNAL VECTORS
+##--- IGNORE WARNING ABOUT USING EXTERNAL VECTORS. A suitable alternative is not available at the time of this writing.
 ##--- output is saved as "contact_sum" in environment
 ##--- NOTE: if "tot_anglers" = 1, no variance components can be calculated and will be stated as NaN
 
@@ -116,7 +118,7 @@ roving1c(grp_var = grp_var_vec2)
 ## Summarize by options defined above
 roving1d(option = opt)
 ##--- outputs are saved as multiple objects in environment based on grouping option defined.
-##--- each object will be prefixed with "stat".
+##--- each object will be prefixed with "stat"
 
 ## Export Overall CATCH
 if(opt == 1 | opt == 3) {
@@ -152,7 +154,7 @@ roving1c(grp_var = grp_var_vec2)
 ## Summarize by options defined above
 roving1d(option = opt)
 ##--- outputs are saved as multiple objects in environment based on grouping option defined.
-##--- each object will be prefixed with "stat".
+##--- each object will be prefixed with "stat"
 
 ## Export Overall HARVEST
 if(opt == 1 | opt == 3) {

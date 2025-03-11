@@ -5,8 +5,8 @@ library(lubridate)
 library(magrittr)
 library(ggplot2)
 
-start_date <- "2023/03/01"
-end_date <- "2023/10/31"
+start_date <- "2026/03/01"
+end_date <- "2026/10/31"
 date_vec <- seq.Date(as.Date(start_date), as.Date(end_date), "days")
 
 dat <- getSunlightTimes(date_vec, lat = 41.186126, lon = -111.381330, keep = c("sunrise", "sunset"), tz = "America/Denver") %>% 
@@ -75,7 +75,8 @@ source("scripts/calendar.R")
 
 cal <- create_calendar(start_date, end_date) %>% 
   mutate(week = isoweek(date)) %>% 
-  filter(week %in% 14:17)
+  filter(date >= start_date,
+         date <= end_date)
 
 
 # SURVEY DESIGN EXAMPLES -------------------------------------------------------------------------------------
@@ -124,31 +125,52 @@ cal_rand_one <- bind_rows(cal_wd_one, cal_we_one) %>%
 ## set seed to reproduce randomized results
 set.seed(32104934)
 
+## define strata
+tod_levels <- c("AM", "PM")
 site_levels <- c("A", "B", "C")
+# create a dataframe with all possible combinations of strata
+all_levels <- expand_grid(tod_levels, site_levels)
 
-## randomly select two weekdays per week and randomly assign both strata with equal probability
+## define effort
+n_per_week_wd <- 3
+n_per_month_we <- 4
+
+## define number of weeks and months in survey period
+n_week <- cal %>% filter(dow == "wd") %>% distinct(week) %>% nrow()
+n_month <- cal %>% filter(dow == "we") %>% distinct(month) %>% nrow()
+
+## randomly select n weekdays per week and randomly assign both strata with equal probability
 cal_wd_mult <- cal %>% filter(dow == "wd") %>% 
   # group by a variable to ensure equal distribution within the levels of selected variable
   group_by(week) %>% 
   # number of days
-  slice_sample(n = 2) %>% 
-  ungroup() %>% 
-  # randomly assign strata (e.g., time of day and access point)
-  mutate(shift = sample(rep(tod_levels, each = ceiling(n()/length(tod_levels))), size = n(), replace = FALSE),
-         site = sample(rep(site_levels, each = ceiling(n()/length(site_levels))), size = n(), replace = FALSE))
+  slice_sample(n = n_per_week_wd) %>% 
+  ungroup()
 
-## randomly select six weekend days per month and randomly assign both strata with equal probability
+# randomly assign strata (e.g., time of day and access point)
+rand_wd_mult <- bind_rows(replicate(n_week, all_levels %>% sample_n(n_per_week_wd, replace = FALSE), simplify = F)) %>% 
+  rename(shift = 1, site = 2)
+
+# combine random dates with randomized strata
+cal_wd_mult %<>% bind_cols(rand_wd_mult)
+
+## randomly select n weekend days per month and randomly assign both strata with equal probability
 cal_we_mult <- cal %>% filter(dow == "we") %>% 
+  # group by a variable to ensure equal distribution within the levels of selected variable
+  group_by(month) %>% 
   # number of days
-  slice_sample(n = 6) %>% 
-  ungroup() %>% 
-  # randomly assign strata (e.g., time of day and access point)
-  mutate(shift = sample(rep(tod_levels, each = ceiling(n()/length(tod_levels))), size = n(), replace = FALSE),
-         site = sample(rep(site_levels, each = ceiling(n()/length(site_levels))), size = n(), replace = FALSE))
+  slice_sample(n = n_per_month_we) %>% 
+  ungroup()
+
+# randomly assign strata (e.g., time of day and access point)
+rand_we_mult <- bind_rows(replicate(n_month, all_levels %>% sample_n(n_per_month_we), simplify = F)) %>% 
+  rename(shift = 1, site = 2)
+
+# combine random dates with randomized strata
+cal_we_mult %<>% bind_cols(rand_we_mult)
+
 
 ## Combine randomized calendar
 cal_rand_mult <- bind_rows(cal_wd_mult, cal_we_mult) %>% 
   arrange(month, day)
-
-
 
