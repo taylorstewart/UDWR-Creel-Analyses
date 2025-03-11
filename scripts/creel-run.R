@@ -13,11 +13,11 @@ if(!require(lubridate)) { install.packages("lubridate"); library(lubridate) }
 
 # IMPORT DATA -----------------------------------------------------------------------------------------------------
 ## Contact
-dat_contact <- read_excel("data/test-moonlake-contact.xlsx", sheet = 1)
+dat_contact <- read_excel("data/test-ec-contact.xlsx", sheet = 1)
 ## Counts
-dat_count <- read_excel("data/test-moonlake-count.xlsx", sheet = 1)
+dat_count <- read_excel("data/test-ec-count.xlsx", sheet = 1)
 ## Species Composition
-dat_sppcomp <- read_excel("data/test-moonlake-sppcomp.xlsx", sheet = 1)
+dat_sppcomp <- read_excel("data/test-ec-sppcomp.xlsx", sheet = 1)
 
 
 # DEFINE DATA OF INTEREST (i.e., data to evaluate) ----------------------------------------------------------------
