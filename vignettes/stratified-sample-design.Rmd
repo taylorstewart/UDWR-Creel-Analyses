@@ -1,7 +1,15 @@
 ---
-title: "UDWR Creel Survey - Stratified Random Sampling Design"
+title: "UDWR Creel Survey"
+subtitle: "Stratified Random Sampling Design"
 output: pdf_document
 ---
+\vspace{-15truemm}
+\begin{center}
+\large
+Author: Taylor R. Stewart \\
+Date Written: 2025-Mar-13 \\
+Last Modified: 2025-Mar-13 \\
+\end{center}
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -262,4 +270,16 @@ cal_rand_mult <- bind_rows(cal_wd_mult, cal_we_mult) %>%
 ```  
 ```{r, echo=FALSE}
 knitr::kable(cal_rand_mult[1:20,], format = "simple")
+```
+
+### Build a table with counts among strata
+```{r}
+cal_rand_mult_count <- cal_rand_mult %>% 
+  group_by(month, dow, shift) %>% 
+  count() %>% 
+  ungroup() %>% 
+  pivot_wider(names_from = month, values_from = n)
+```
+```{r, echo=FALSE}
+knitr::kable(cal_rand_mult_count, format = "simple")
 ```
