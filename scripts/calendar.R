@@ -3,15 +3,15 @@ create_calendar <- function(sdate = start_date, fdate = end_date) {
   # Convert start and end dates from character to Date type
   start_date <- ymd(sdate)
   end_date <- ymd(fdate)
-  
+
   # Create a sequence of dates from start to end
   dates <- seq.Date(from = start_date, to = end_date, by = "day")
-  
+
   # Create a data frame with the sequence of dates
   calendar_df <- data.frame(date = dates)
-  
+
   # Extract year, month, and day from the dates
-  calendar_df %<>% 
+  calendar_df %<>%
     mutate(year = year(date),
            month = month(date),
            day = day(date),
@@ -35,6 +35,33 @@ create_calendar <- function(sdate = start_date, fdate = end_date) {
                (month == 12 & day == 31),
              'we', 'wd'
            ))
-  
+
+  # Assign season, but need to account for leap years
+  ## Spring - March 20
+  ## Summer - June 21
+  ## Fall - September 22
+  ## Winter - December 21
+  if(unique(calendar_df$year) %in% seq(1992, 2092, 4)) {
+    # leap year
+    calendar_df %<>%
+      mutate(yday = yday(date),
+             season = case_when(
+               yday >= 80 & yday < 173 ~ "Spring",
+               yday >= 173 & yday < 266 ~ "Summer",
+               yday >= 266 & yday < 356 ~ "Autumn",
+               yday >= 365 & yday < 80 ~ "Winter"
+      ))
+  } else {
+    # non leap year
+    calendar_df %<>%
+      mutate(yday = yday(date),
+             season = case_when(
+               yday >= 79 & yday < 172 ~ "Spring",
+               yday >= 172 & yday < 265 ~ "Summer",
+               yday >= 265 & yday < 355 ~ "Autumn",
+               yday >= 365 & yday < 79 ~ "Winter"
+             ))
+  }
+
   return(calendar_df)
 }
